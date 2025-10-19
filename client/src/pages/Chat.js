@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { initSocket } from "../utils/socket";
 import axios from "../api/axios";
-import { FaPlus } from "react-icons/fa";
-import "../styles/styles.css"; // fichier CSS séparé
+import { FaPlus, FaHistory } from "react-icons/fa";
+import "../styles/styles.css"; // ton fichier CSS séparé
+
 const Chat = () => {
   const token = localStorage.getItem("token");
   const [socket, setSocket] = useState(null);
@@ -12,11 +13,11 @@ const Chat = () => {
   const [newRoom, setNewRoom] = useState("");
   const [newMessage, setNewMessage] = useState("");
 
-  // 🔹 Fonction pour obtenir l'initiale d'un username
-  const user = token ? JSON.parse(atob(token.split(".")[1])) : null; // décode le JWT
+  // Décode le JWT pour récupérer le username
+  const user = token ? JSON.parse(atob(token.split(".")[1])) : null;
   const username = user?.username || "Anonyme";
 
-  // Fonction pour obtenir l'initiale
+  // Initiale pour l’avatar
   const getInitials = (name) => (name ? name[0].toUpperCase() : "?");
 
   // 🔹 Connexion Socket.IO
@@ -25,9 +26,7 @@ const Chat = () => {
     const s = initSocket(token);
     setSocket(s);
 
-    return () => {
-      s.disconnect();
-    };
+    return () => s.disconnect();
   }, [token]);
 
   // 🔹 Charger les rooms depuis l’API
@@ -69,24 +68,35 @@ const Chat = () => {
       console.error("Erreur création room:", err);
     }
   };
+
+  // 🔹 Quitter une room
   const leaveRoom = () => {
     if (!socket || !selectedRoom) return;
-
     socket.emit("leave-room", { roomId: selectedRoom._id });
     setSelectedRoom(null);
     setMessages([]);
   };
 
-  // 🔹 Écoute des nouveaux messages en temps réel
+  // 🔹 Historique
+  const fetchHistory = async () => {
+    if (!selectedRoom) return;
+    try {
+      const res = await axios.get(`/messages/${selectedRoom._id}`);
+      console.log("Historique:", res.data); // debug
+      setMessages(res.data);
+    } catch (err) {
+      console.error("Erreur récupération historique:", err);
+    }
+  };
+
+  // 🔹 Écoute des messages en temps réel
   useEffect(() => {
     if (!socket) return;
-
     socket.on("message:new", (msg) => {
       if (msg.room === selectedRoom?._id) {
         setMessages((prev) => [...prev, msg]);
       }
     });
-
     return () => socket.off("message:new");
   }, [socket, selectedRoom]);
 
@@ -102,8 +112,9 @@ const Chat = () => {
 
   return (
     <div className="chat-container">
+      {/* === Sidebar gauche === */}
       <div className="sidebar">
-        {/* Avatar utilisateur connecté */}
+        {/* Avatar utilisateur */}
         <div className="user-avatar-container">
           <span className="avatar">{getInitials(username)}</span>
           <span className="username">{username}</span>
@@ -132,7 +143,7 @@ const Chat = () => {
           ))}
         </div>
 
-        {/* Champ pour créer une room */}
+        {/* Création de room */}
         <div className="new-room-container">
           <input
             type="text"
@@ -150,16 +161,16 @@ const Chat = () => {
       <div className="chat-area">
         {selectedRoom ? (
           <>
-            <h2 className="room-title">
-              {selectedRoom && (
-                <div className="room-header">
-                  <h2 className="room-title">{selectedRoom.name}</h2>
-                  <button onClick={leaveRoom} className="leave-room-button">
-                    Quitter la room
-                  </button>
-                </div>
-              )}
-            </h2>
+            <div className="room-header">
+              <h2 className="room-title">{selectedRoom.name}</h2>
+              <button onClick={leaveRoom} className="leave-room-button">
+                Quitter la room
+              </button>
+              <button onClick={fetchHistory} className="history-button">
+                <FaHistory /> Historique
+              </button>
+            </div>
+
             <div className="messages">
               {messages.map((msg, i) => (
                 <div key={i} className="message">

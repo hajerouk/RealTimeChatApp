@@ -6,9 +6,12 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
 
-const authRoutes = require("./routes/authRoutes");
-const roomRoutes = require("./routes/roomRoutes");
-const messageRoutes = require("./routes/messageRoutes");
+const authRoutes = require("./routes/auth");
+const roomRoutes = require("./routes/rooms");
+const messageRoutes = require("./routes/messages"); // ici juste ./routes/messages
+const User = require("./models/User");
+const Room = require("./models/Room");
+const Message = require("./models/Message");
 
 const app = express();
 const server = http.createServer(app);
@@ -22,68 +25,58 @@ app.use("/api/auth", authRoutes);
 app.use("/api/rooms", roomRoutes);
 app.use("/api/messages", messageRoutes);
 
-// MongoDB
-mongoose
-  .connect(process.env.MONGO_URI)
-  .then(() => console.log("✅ Connecté à MongoDB"))
-  .catch((err) => console.error("❌ Erreur MongoDB :", err));
+// Ping test
+app.get("/api/ping", (req, res) => res.json({ ok: true }));
 
 // === SOCKET.IO ===
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:3000", // ton frontend React
+    origin: process.env.CLIENT_ORIGIN || "http://localhost:3000",
     methods: ["GET", "POST"],
   },
 });
 
-// Middleware d’authentification Socket.IO
+// Middleware Socket.IO
 io.use((socket, next) => {
   const token = socket.handshake.auth?.token;
   if (!token) return next(new Error("No token provided"));
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    socket.user = decoded; // on stocke l’utilisateur dans le socket
+    socket.user = decoded;
     next();
   } catch (err) {
     next(new Error("Invalid token"));
   }
 });
 
-// Gestion des connexions
+// Gestion connexions Socket.IO
 io.on("connection", (socket) => {
+  const userId = socket.user.id;
   console.log(`✅ ${socket.user.username} connecté (${socket.id})`);
 
-  // 🔹 Rejoindre une room
-  socket.on("join-room", ({ roomId }) => {
+  socket.on("join-room", async ({ roomId }) => {
+    const room = await Room.findById(roomId);
+    if (!room) return socket.emit("error", { message: "Room not found" });
     socket.join(roomId);
-    console.log(`${socket.user.username} a rejoint la room ${roomId}`);
   });
 
-  // 🔹 Envoyer un message
+  socket.on("leave-room", ({ roomId }) => {
+    socket.leave(roomId);
+  });
+
   socket.on("message:send", async ({ roomId, content }) => {
-    if (!content.trim()) return;
-
-    const Message = require("./models/Message");
-    const newMsg = await Message.create({
-      sender: socket.user.id,
-      room: roomId,
-      content,
-    });
-
-    // Émettre à tous les membres de la room
-    io.to(roomId).emit("message:new", {
-      sender: { username: socket.user.username },
-      content,
-    });
-  });
-
-  // 🔹 Déconnexion
-  socket.on("disconnect", () => {
-    console.log(`❌ ${socket.user.username} déconnecté`);
+    if (!content || !roomId) return;
+    const msg = await Message.create({ sender: userId, room: roomId, content });
+    const populated = await msg.populate("sender", "username");
+    io.to(roomId).emit("message:new", populated);
   });
 });
 
-// Lancer le serveur
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => console.log(`🚀 Serveur lancé sur le port ${PORT}`));
+mongoose
+  .connect(process.env.MONGO_URI)
+  .then(() =>
+    server.listen(PORT, () => console.log(`🚀 Serveur lancé sur ${PORT}`))
+  )
+  .catch((err) => console.error("❌ Erreur MongoDB", err));
