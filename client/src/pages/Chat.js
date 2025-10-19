@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { initSocket } from "../utils/socket";
 import axios from "../api/axios";
-import { FaPlus, FaHistory, FaEdit, FaTrash } from "react-icons/fa";
+import { FaPlus, FaHistory, FaSignOutAlt } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 import "../styles/styles.css";
 
 const Chat = () => {
+  const navigate = useNavigate();
   const token = localStorage.getItem("token");
   const [socket, setSocket] = useState(null);
   const [rooms, setRooms] = useState([]);
@@ -19,6 +21,24 @@ const Chat = () => {
   const isAdmin = user?.role === "superadmin";
 
   const getInitials = (name) => (name ? name[0].toUpperCase() : "?");
+
+  const handleLogout = async () => {
+    try {
+      await axios.post(
+        "/auth/logout",
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+    } catch (err) {
+      console.error("Erreur lors de la déconnexion:", err);
+    } finally {
+      if (socket) {
+        socket.disconnect();
+      }
+      localStorage.removeItem("token");
+      navigate("/login");
+    }
+  };
 
   // Charger rooms depuis l'API
   const fetchRooms = async () => {
@@ -154,7 +174,17 @@ const Chat = () => {
       <div className="sidebar">
         <div className="user-avatar-container">
           <span className="avatar">{getInitials(username)}</span>
-          <span className="username">{username}</span>
+          <div className="user-info">
+            <span className="username">{username}</span>
+            <span className="user-role">{profile}</span>
+          </div>
+          <button
+            onClick={handleLogout}
+            className="logout-button"
+            title="Déconnexion"
+          >
+            <FaSignOutAlt />
+          </button>
         </div>
 
         <h3>Rooms</h3>
@@ -183,8 +213,8 @@ const Chat = () => {
               {/* Boutons admin (modifier/supprimer) */}
               {user?.role === "superadmin" && (
                 <div className="admin-room-buttons">
-                  <button onClick={() => handleEditRoom(room)}>✏️</button>
-                  <button onClick={() => handleDeleteRoom(room._id)}>🗑️</button>
+                  <button onClick={(e) => { e.stopPropagation(); handleEditRoom(room); }}>✏️</button>
+                  <button onClick={(e) => { e.stopPropagation(); handleDeleteRoom(room); }}>🗑️</button>
                 </div>
               )}
             </div>
