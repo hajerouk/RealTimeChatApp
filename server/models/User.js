@@ -14,6 +14,7 @@ const UserSchema = new mongoose.Schema(
     password: { type: String, required: true },
     avatarUrl: { type: String, default: "" },
     online: { type: Boolean, default: false },
+    role: { type: String, enum: ["user", "superadmin"], default: "user" },
   },
   { timestamps: true }
 );

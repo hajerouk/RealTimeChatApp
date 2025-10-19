@@ -34,65 +34,41 @@ const Login = () => {
   };
 
   return (
-    <div style={styles.container}>
-      <h2>Connexion</h2>
-      <form onSubmit={handleSubmit} style={styles.form}>
-        <input
-          type="email"
-          name="email"
-          placeholder="Adresse e-mail"
-          value={formData.email}
-          onChange={handleChange}
-          required
-          style={styles.input}
-        />
-        <input
-          type="password"
-          name="password"
-          placeholder="Mot de passe"
-          value={formData.password}
-          onChange={handleChange}
-          required
-          style={styles.input}
-        />
-        <button type="submit" style={styles.button}>
-          Se connecter
-        </button>
-      </form>
+    <div className="login-container">
+      <div className="login-box">
+        <h2>Connexion</h2>
+        <p className="login-subtitle">Accédez à votre espace de discussion</p>
 
-      {error && <p style={{ color: "red" }}>{error}</p>}
+        <form onSubmit={handleSubmit} className="login-form">
+          <input
+            type="email"
+            name="email"
+            placeholder="Adresse e-mail"
+            value={formData.email}
+            onChange={handleChange}
+            required
+          />
+          <input
+            type="password"
+            name="password"
+            placeholder="Mot de passe"
+            value={formData.password}
+            onChange={handleChange}
+            required
+          />
+          <button type="submit" className="login-submit-btn">
+            Se connecter
+          </button>
+        </form>
 
-      <p>
-        Pas encore de compte ? <Link to="/register">S’inscrire</Link>
-      </p>
+        {error && <p className="login-error">{error}</p>}
+
+        <p className="login-footer">
+          Pas encore de compte ? <Link to="/register">S'inscrire</Link>
+        </p>
+      </div>
     </div>
   );
-};
-
-const styles = {
-  container: {
-    maxWidth: "400px",
-    margin: "50px auto",
-    textAlign: "center",
-  },
-  form: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "10px",
-  },
-  input: {
-    padding: "10px",
-    borderRadius: "5px",
-    border: "1px solid #ccc",
-  },
-  button: {
-    padding: "10px",
-    borderRadius: "5px",
-    border: "none",
-    background: "#28a745",
-    color: "white",
-    cursor: "pointer",
-  },
 };
 
 export default Login;

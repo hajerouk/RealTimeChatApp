@@ -53,7 +53,9 @@ io.use((socket, next) => {
 // Gestion connexions Socket.IO
 io.on("connection", (socket) => {
   const userId = socket.user.id;
-  console.log(`✅ ${socket.user.username} connecté (${socket.id})`);
+  console.log(
+    `✅ ${socket.user.username} connecté (${socket.id}) {user role : ${socket.user.role}}`
+  );
 
   socket.on("join-room", async ({ roomId }) => {
     const room = await Room.findById(roomId);

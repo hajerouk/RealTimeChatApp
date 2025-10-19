@@ -55,105 +55,74 @@ const Register = () => {
   };
 
   return (
-    <div style={styles.container}>
-      <h2>Inscription</h2>
-      <form onSubmit={handleSubmit} style={styles.form}>
-        <div style={styles.inputContainer}>
-          <input
-            type="text"
-            name="username"
-            placeholder="Nom d'utilisateur"
-            value={formData.username}
-            onChange={handleChange}
-            required
-            style={styles.input}
-          />
-          {errors.username && (
-            <small style={styles.error}>{errors.username}</small>
-          )}
-        </div>
+    <div className="register-container">
+      <div className="register-box">
+        <h2>Inscription</h2>
+        <p className="register-subtitle">Créez votre compte pour commencer</p>
 
-        <div style={styles.inputContainer}>
-          <input
-            type="email"
-            name="email"
-            placeholder="Adresse e-mail"
-            value={formData.email}
-            onChange={handleChange}
-            required
-            style={styles.input}
-          />
-          {errors.email && <small style={styles.error}>{errors.email}</small>}
-        </div>
+        <form onSubmit={handleSubmit} className="register-form">
+          <div className="register-input-group">
+            <input
+              type="text"
+              name="username"
+              placeholder="Nom d'utilisateur"
+              value={formData.username}
+              onChange={handleChange}
+              required
+              className={errors.username ? "input-error" : ""}
+            />
+            {errors.username && (
+              <small className="register-field-error">
+                ⚠ {errors.username}
+              </small>
+            )}
+          </div>
 
-        <div style={styles.inputContainer}>
-          <input
-            type="password"
-            name="password"
-            placeholder="Mot de passe"
-            value={formData.password}
-            onChange={handleChange}
-            required
-            style={styles.input}
-          />
-          {errors.password && (
-            <small style={styles.error}>{errors.password}</small>
-          )}
-        </div>
+          <div className="register-input-group">
+            <input
+              type="email"
+              name="email"
+              placeholder="Adresse e-mail"
+              value={formData.email}
+              onChange={handleChange}
+              required
+              className={errors.email ? "input-error" : ""}
+            />
+            {errors.email && (
+              <small className="register-field-error">⚠ {errors.email}</small>
+            )}
+          </div>
 
-        <button type="submit" style={styles.button}>
-          S'inscrire
-        </button>
-      </form>
+          <div className="register-input-group">
+            <input
+              type="password"
+              name="password"
+              placeholder="Mot de passe"
+              value={formData.password}
+              onChange={handleChange}
+              required
+              className={errors.password ? "input-error" : ""}
+            />
+            {errors.password && (
+              <small className="register-field-error">
+                ⚠ {errors.password}
+              </small>
+            )}
+          </div>
 
-      {success && <p style={styles.success}>{success}</p>}
+          <button type="submit" className="register-submit-btn">
+            S'inscrire
+          </button>
+        </form>
 
-      <p>
-        Déjà un compte ? <Link to="/">Se connecter</Link>
-      </p>
+        {success && <p className="register-success">✓ {success}</p>}
+
+        <p className="register-footer">
+          Déjà un compte ? <Link to="/">Se connecter</Link>
+        </p>
+      </div>
     </div>
   );
-};
-
-const styles = {
-  container: {
-    maxWidth: "400px",
-    margin: "50px auto",
-    textAlign: "center",
-  },
-  form: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "10px",
-  },
-  inputContainer: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "flex-start",
-  },
-  input: {
-    width: "100%",
-    padding: "10px",
-    borderRadius: "5px",
-    border: "1px solid #ccc",
-  },
-  button: {
-    padding: "10px",
-    borderRadius: "5px",
-    border: "none",
-    background: "#007bff",
-    color: "white",
-    cursor: "pointer",
-  },
-  error: {
-    color: "red",
-    fontSize: "0.8rem",
-    marginTop: "2px",
-  },
-  success: {
-    color: "green",
-    marginTop: "10px",
-  },
 };
 
 export default Register;
