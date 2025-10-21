@@ -33,7 +33,7 @@ app.get("/api/ping", (req, res) => res.json({ ok: true }));
 // === SOCKET.IO ===
 const io = new Server(server, {
   cors: {
-    origin: process.env.CLIENT_ORIGIN || "http://localhost:3000",
+    origin:"*",
     methods: ["GET", "POST"],
   },
 });
