@@ -5,10 +5,12 @@ const { Server } = require("socket.io");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
+const path = require("path");
 
 const authRoutes = require("./routes/auth");
 const roomRoutes = require("./routes/rooms");
-const messageRoutes = require("./routes/messages"); // ici juste ./routes/messages
+const messageRoutes = require("./routes/messages");
+
 const User = require("./models/User");
 const Room = require("./models/Room");
 const Message = require("./models/Message");
@@ -82,13 +84,12 @@ mongoose
     server.listen(PORT, () => console.log(`🚀 Serveur lancé sur ${PORT}`))
   )
   .catch((err) => console.error("❌ Erreur MongoDB", err));
-const path = require("path");
 
 // Serve React frontend in production
 if (process.env.NODE_ENV === "production") {
-  app.use(express.static(path.join(__dirname, "../client/build")));
+  app.use(express.static(path.resolve(__dirname, "../client/build")));
 
-  app.get("/*", (req, res) =>
-    res.sendFile(path.join(__dirname, "../client/build", "index.html"))
+  app.get("*", (req, res) =>
+    res.sendFile(path.resolve(__dirname, "../client/build", "index.html"))
   );
 }
