@@ -82,3 +82,13 @@ mongoose
     server.listen(PORT, () => console.log(`🚀 Serveur lancé sur ${PORT}`))
   )
   .catch((err) => console.error("❌ Erreur MongoDB", err));
+const path = require("path");
+
+// Serve React frontend in production
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static(path.join(__dirname, "../client/build")));
+
+  app.get("*", (req, res) =>
+    res.sendFile(path.join(__dirname, "../client/build", "index.html"))
+  );
+}
